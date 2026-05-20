@@ -1,61 +1,93 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const RegisterPage = () => {
-  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const handleRegister = (e) => {
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async (e) => {
     e.preventDefault();
+
+    setError("");
+    setLoading(true);
 
     const form = e.target;
 
     const name = form.name.value;
     const email = form.email.value;
-    const photo = form.photo.value;
+    const image = form.photo.value;
     const password = form.password.value;
 
-    setError("");
+    // ================= VALIDATION =================
 
-    // Password Validation
     if (password.length < 6) {
+      setLoading(false);
+
       return setError(
         "Password must be at least 6 characters long."
       );
     }
 
     if (!/[A-Z]/.test(password)) {
+      setLoading(false);
+
       return setError(
         "Password must include at least one uppercase letter."
       );
     }
 
     if (!/[a-z]/.test(password)) {
+      setLoading(false);
+
       return setError(
         "Password must include at least one lowercase letter."
       );
     }
 
-    // Success
-    console.log({
-      name,
-      email,
-      photo,
-      password,
-    });
+    try {
+      // ================= REGISTER =================
 
-    alert("Registration Successful!");
+      const { data, error } = await authClient.signUp.email({
+        email,
+        password,
+        name,
+        image,
+      });
+
+      if (error) {
+        setError(error.message || "Registration failed");
+        setLoading(false);
+        return;
+      }
+
+      console.log(data);
+
+      form.reset();
+
+      alert("Registration Successful!");
+
+      router.push("/");
+    } catch (err) {
+      console.log(err);
+
+      setError("Something went wrong");
+    }
+
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center px-6 py-12">
-
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-2xl">
-
-        {/* Left Side */}
+        
+        {/* LEFT SIDE */}
         <div className="hidden lg:flex flex-col justify-center bg-black text-white p-14">
-
           <span className="uppercase tracking-[4px] text-sm text-gray-400 mb-6">
             Join IdeaVault
           </span>
@@ -69,9 +101,8 @@ const RegisterPage = () => {
             connect with creators, and explore future-changing startups.
           </p>
 
-          {/* Stats */}
+          {/* STATS */}
           <div className="flex gap-10 mt-12">
-
             <div>
               <h2 className="text-3xl font-bold">
                 5K+
@@ -91,16 +122,14 @@ const RegisterPage = () => {
                 Active Creators
               </p>
             </div>
-
           </div>
         </div>
 
-        {/* Right Side */}
+        {/* RIGHT SIDE */}
         <div className="p-8 md:p-14">
-
-          {/* Header */}
+          
+          {/* HEADER */}
           <div className="mb-10">
-
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
               Register
             </h2>
@@ -110,10 +139,10 @@ const RegisterPage = () => {
             </p>
           </div>
 
-          {/* Form */}
+          {/* FORM */}
           <form onSubmit={handleRegister} className="space-y-6">
-
-            {/* Name */}
+            
+            {/* NAME */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Name
@@ -128,7 +157,7 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Email */}
+            {/* EMAIL */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Email
@@ -143,7 +172,7 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Photo URL */}
+            {/* PHOTO */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Photo URL
@@ -158,7 +187,7 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Password */}
+            {/* PASSWORD */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Password
@@ -173,24 +202,24 @@ const RegisterPage = () => {
               />
             </div>
 
-            {/* Error */}
+            {/* ERROR */}
             {error && (
               <p className="text-red-500 text-sm">
                 {error}
               </p>
             )}
 
-            {/* Register Button */}
+            {/* BUTTON */}
             <button
               type="submit"
-              className="w-full py-4 rounded-xl bg-black text-white font-semibold hover:scale-[1.01] transition"
+              disabled={loading}
+              className="w-full py-4 rounded-xl bg-black text-white font-semibold hover:scale-[1.01] transition disabled:opacity-50"
             >
-              Register
+              {loading ? "Creating Account..." : "Register"}
             </button>
 
-            {/* Divider */}
+            {/* DIVIDER */}
             <div className="flex items-center gap-4">
-
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
 
               <span className="text-sm text-gray-500">
@@ -198,10 +227,9 @@ const RegisterPage = () => {
               </span>
 
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
-
             </div>
 
-            {/* Google Register */}
+            {/* GOOGLE */}
             <button
               type="button"
               className="w-full flex items-center justify-center gap-3 py-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
@@ -216,10 +244,9 @@ const RegisterPage = () => {
                 Continue with Google
               </span>
             </button>
-
           </form>
 
-          {/* Login */}
+          {/* LOGIN */}
           <p className="text-center text-gray-500 dark:text-gray-400 mt-8">
             Already have an account?{" "}
 
@@ -230,7 +257,6 @@ const RegisterPage = () => {
               Login
             </Link>
           </p>
-
         </div>
       </div>
     </div>

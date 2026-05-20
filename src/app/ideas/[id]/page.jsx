@@ -4,10 +4,14 @@ import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { FaRegGrinHearts } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
+import { authClient } from "@/lib/auth-client";
 
 const DetailsPage = () => {
   const { id } = useParams();
   const router = useRouter();
+
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   const [idea, setIdea] = useState(null);
   const [comments, setComments] = useState([]);
@@ -18,7 +22,7 @@ const DetailsPage = () => {
   const [views, setViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // ================= IDEA FETCH =================
+  // ================= FETCH IDEA =================
   useEffect(() => {
     const fetchIdea = async () => {
       const res = await fetch(`http://localhost:5000/ideas/${id}`);
@@ -27,7 +31,6 @@ const DetailsPage = () => {
       setIdea(data);
       setLikes(data?.likes || 0);
       setViews(data?.views || 0);
-
       setLoading(false);
     };
 
@@ -47,9 +50,11 @@ const DetailsPage = () => {
     if (id) addView();
   }, [id]);
 
-  // ================= COMMENTS FETCH =================
+  // ================= LOAD COMMENTS =================
   const loadComments = async () => {
-    const res = await fetch(`http://localhost:5000/comments/${id}`);
+    const res = await fetch(
+      `http://localhost:5000/comments/${id}`
+    );
     const data = await res.json();
     setComments(data);
   };
@@ -69,6 +74,7 @@ const DetailsPage = () => {
 
   // ================= ADD COMMENT =================
   const handleAddComment = async () => {
+    if (!user) return alert("Please login first");
     if (!text.trim()) return;
 
     await fetch("http://localhost:5000/comments", {
@@ -77,6 +83,7 @@ const DetailsPage = () => {
       body: JSON.stringify({
         ideaId: id,
         text,
+        userName: user.name,
       }),
     });
 
@@ -135,6 +142,7 @@ const DetailsPage = () => {
 
       {/* HEADER */}
       <div className="max-w-4xl mx-auto flex justify-between items-center mb-6">
+
         <button
           onClick={() => router.push("/ideas")}
           className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg"
@@ -142,7 +150,7 @@ const DetailsPage = () => {
           ← Back
         </button>
 
-        <h1 className="text-xl font-bold text-black">
+        <h1 className="text-xl font-bold dark:text-white">
           Idea Details
         </h1>
 
@@ -152,37 +160,61 @@ const DetailsPage = () => {
       {/* IDEA CARD */}
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
 
-        <img src={idea.image} className="w-full h-72 object-cover rounded-xl" />
+        <img
+          src={idea.image}
+          alt={idea.title}
+          className="w-full h-72 object-cover rounded-xl"
+        />
 
-        <h1 className="text-3xl font-bold mt-4">{idea.title}</h1>
+        <h1 className="text-3xl font-bold mt-4 dark:text-white">
+          {idea.title}
+        </h1>
 
-        <div className="flex gap-6 mt-3 text-sm">
-          <button onClick={handleLike} className="flex items-center gap-1">
-            <FaRegGrinHearts /> {likes}
+        <div className="flex gap-6 mt-3 text-sm dark:text-white">
+
+          <button
+            onClick={handleLike}
+            className="flex items-center gap-1"
+          >
+            <FaRegGrinHearts />
+            {likes}
           </button>
 
           <span className="flex items-center gap-1">
-            <IoEyeSharp /> {views}
+            <IoEyeSharp />
+            {views}
           </span>
+
         </div>
 
-        <p className="mt-2 text-gray-600">{idea.shortDescription}</p>
-        <p className="mt-4">{idea.detailedDescription}</p>
+        <p className="mt-2 text-gray-600 dark:text-gray-300">
+          {idea.shortDescription}
+        </p>
+
+        <p className="mt-4 dark:text-gray-200">
+          {idea.detailedDescription}
+        </p>
       </div>
 
-      {/* COMMENTS */}
+      {/* COMMENTS SECTION */}
       <div className="max-w-4xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
 
-        <h2 className="text-xl font-bold mb-4">
+        <h2 className="text-xl font-bold mb-4 dark:text-white">
           Comments ({comments.length})
         </h2>
 
         {/* INPUT */}
         <div className="flex gap-2">
+
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Write comment..."
+            placeholder={
+              user
+                ? "Write comment..."
+                : "Login to comment"
+            }
+            disabled={!user}
             className="w-full p-3 border rounded-lg"
           />
 
@@ -201,44 +233,63 @@ const DetailsPage = () => {
               Add
             </button>
           )}
+
         </div>
 
-        {/* LIST */}
+        {/* COMMENTS LIST */}
         <div className="mt-6 space-y-4">
+
           {comments.map((c) => (
             <div
               key={c._id}
-              className="flex justify-between border p-3 rounded-lg"
+              className="border p-4 rounded-xl bg-gray-50 dark:bg-gray-900"
             >
-              <div>
-                <p>{c.text}</p>
 
-                <p className="text-xs text-gray-500">
+              {/* USERNAME + TIME */}
+              <div className="flex justify-between">
+
+                <p className="font-semibold text-gray-800 dark:text-white">
+                  {c.userName}
+                </p>
+
+                <span className="text-xs text-gray-500">
                   {c.createdAt
                     ? new Date(c.createdAt).toLocaleString()
-                    : "No date"}
-                </p>
+                    : ""}
+                </span>
+
               </div>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleEdit(c)}
-                  className="text-blue-600 text-sm"
-                >
-                  Edit
-                </button>
+              {/* COMMENT TEXT */}
+              <p className="mt-2 text-gray-700 dark:text-gray-200">
+                {c.text}
+              </p>
 
-                <button
-                  onClick={() => handleDelete(c._id)}
-                  className="text-red-500 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
+              {/* OWNER ACTIONS */}
+              {user?.name === c.userName && (
+                <div className="flex gap-3 mt-3">
+
+                  <button
+                    onClick={() => handleEdit(c)}
+                    className="text-blue-600 text-sm"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(c._id)}
+                    className="text-red-500 text-sm"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+              )}
+
             </div>
           ))}
-        </div>
 
+        </div>
       </div>
     </div>
   );
