@@ -73,15 +73,15 @@ const MyInteraction = () => {
         ) : (
           comments.map((c) => (
             <div
-              key={c.name}
+              key={c._id}
               className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow"
             >
 
               {/* IDEA LINK (optional improvement) */}
               <p className="text-sm text-gray-500">
-                Idea ID:
+                Idea Title:
                 <span className="ml-2 text-black dark:text-white">
-                  {c.ideaId}
+                  {c.ideaTitle}
                 </span>
               </p>
 
