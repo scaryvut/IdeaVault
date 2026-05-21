@@ -83,7 +83,7 @@ const IdeaPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center">
-        <SkewLoader color="#000" />
+        <SkewLoader color="#810B38" />
         <p className="mt-4 text-gray-600">Loading Ideas...</p>
       </div>
     );

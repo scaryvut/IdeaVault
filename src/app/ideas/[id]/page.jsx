@@ -6,6 +6,7 @@ import { FaRegGrinHearts } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify";
+import { SkewLoader } from "react-spinners";
 
 const DetailsPage = () => {
   const { id } = useParams();
@@ -35,14 +36,16 @@ const DetailsPage = () => {
         const res = await fetch(`http://localhost:5000/ideas/${id}`);
         const data = await res.json();
 
+        if (!res.ok) throw new Error(data?.message || "Failed");
+
         setIdea(data);
         setLikes(data?.likes || 0);
         setViews(data?.views || 0);
-      } catch (error) {
+      } catch {
         toast.error("Failed to load idea");
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     if (id) fetchIdea();
@@ -55,9 +58,8 @@ const DetailsPage = () => {
         await fetch(`http://localhost:5000/ideas/${id}/view`, {
           method: "PATCH",
         });
-
         setViews((prev) => prev + 1);
-      } catch (error) {}
+      } catch {}
     };
 
     if (id) addView();
@@ -66,14 +68,14 @@ const DetailsPage = () => {
   // ================= LOAD COMMENTS =================
   const loadComments = async () => {
     try {
-      const res = await fetch(
-        `http://localhost:5000/comments/${id}`
-      );
-
+      const res = await fetch(`http://localhost:5000/comments/${id}`);
       const data = await res.json();
+
+      if (!res.ok) throw new Error();
+
       setComments(data);
-    } catch (error) {
-      console.log(error);
+    } catch {
+      toast.error("Failed to load comments");
     }
   };
 
@@ -84,22 +86,22 @@ const DetailsPage = () => {
   // ================= LIKE =================
   const handleLike = async () => {
     try {
-      await fetch(`http://localhost:5000/ideas/${id}/like`, {
+      const res = await fetch(`http://localhost:5000/ideas/${id}/like`, {
         method: "PATCH",
       });
 
+      if (!res.ok) throw new Error();
+
       setLikes((prev) => prev + 1);
-    } catch (error) {}
+    } catch {
+      toast.error("Like failed");
+    }
   };
 
-  // ================= ADD COMMENT (FIXED) =================
+  // ================= ADD COMMENT =================
   const handleAddComment = async () => {
-    if (!user) {
-      toast.error("Please login first");
-      return;
-    }
-
-    if (!text.trim()) return;
+    if (!user) return toast.error("Login required");
+    if (!text.trim()) return toast.error("Comment cannot be empty");
 
     try {
       const res = await fetch("http://localhost:5000/comments", {
@@ -109,23 +111,23 @@ const DetailsPage = () => {
           authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-  ideaId: id,
-  text,
-  userEmail: user?.email,   // ✅ ADD THIS
-}),
-        
+          ideaId: id,
+          text,
+          userEmail: user?.email,
+        }),
       });
 
-      if (res.status === 401) {
-        toast.error("Unauthorized");
-        return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        return toast.error(data?.message || "Failed to add comment");
       }
 
       setText("");
       await loadComments();
       toast.success("Comment added");
-    } catch (error) {
-      toast.error("Failed to add comment");
+    } catch {
+      toast.error("Server error");
     }
   };
 
@@ -142,15 +144,16 @@ const DetailsPage = () => {
         }
       );
 
-      if (res.status === 403) {
-        toast.error("Forbidden");
-        return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        return toast.error(data?.message || "Delete failed");
       }
 
       await loadComments();
       toast.success("Comment deleted");
-    } catch (error) {
-      toast.error("Delete failed");
+    } catch {
+      toast.error("Server error");
     }
   };
 
@@ -162,7 +165,7 @@ const DetailsPage = () => {
 
   // ================= UPDATE =================
   const handleUpdate = async () => {
-    if (!text.trim()) return;
+    if (!text.trim()) return toast.error("Empty comment");
 
     try {
       const res = await fetch(
@@ -177,9 +180,10 @@ const DetailsPage = () => {
         }
       );
 
-      if (res.status === 403) {
-        toast.error("Forbidden");
-        return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        return toast.error(data?.message || "Update failed");
       }
 
       setEditId(null);
@@ -187,8 +191,8 @@ const DetailsPage = () => {
       await loadComments();
 
       toast.success("Comment updated");
-    } catch (error) {
-      toast.error("Update failed");
+    } catch {
+      toast.error("Server error");
     }
   };
 
@@ -196,7 +200,7 @@ const DetailsPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <SkewLoader color="#810B38" />
       </div>
     );
   }
@@ -271,15 +275,12 @@ const DetailsPage = () => {
           Comments ({comments.length})
         </h2>
 
-        {/* INPUT */}
         <div className="flex gap-2">
 
           <input
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder={
-              user ? "Write comment..." : "Login to comment"
-            }
+            placeholder={user ? "Write comment..." : "Login to comment"}
             disabled={!user}
             className="w-full p-3 border rounded-lg"
           />
@@ -312,8 +313,7 @@ const DetailsPage = () => {
             >
 
               <div className="flex justify-between">
-
-                <p className="font-semibold text-gray-800 dark:text-white">
+                <p className="font-semibold dark:text-white">
                   {c.userEmail?.split("@")[0] || "User"}
                 </p>
 
@@ -322,10 +322,9 @@ const DetailsPage = () => {
                     ? new Date(c.createdAt).toLocaleString()
                     : ""}
                 </span>
-
               </div>
 
-              <p className="mt-2 text-gray-700 dark:text-gray-200">
+              <p className="mt-2 dark:text-gray-200">
                 {c.text}
               </p>
 
