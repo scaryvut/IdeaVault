@@ -29,24 +29,23 @@ const LoginPage = () => {
 
       if (error) {
         toast.error(error.message || "Invalid email or password");
-        setLoading(false);
         return;
       }
 
       toast.success("Login successful");
+
       form.reset();
 
-      // smart redirect
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get("redirect") || "/";
 
       router.push(redirectTo);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   // ================= GOOGLE LOGIN =================
@@ -57,16 +56,18 @@ const LoginPage = () => {
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get("redirect") || "/";
 
+      toast.info("Redirecting to Google...");
+
       await authClient.signIn.social({
         provider: "google",
         callbackURL: redirectTo,
       });
-    } catch (err) {
-      console.log(err);
-      toast.error("Google login failed");
-    }
 
-    setGoogleLoading(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Google login failed");
+      setGoogleLoading(false);
+    }
   };
 
   return (
@@ -104,7 +105,6 @@ const LoginPage = () => {
         {/* RIGHT SIDE */}
         <div className="p-8 md:p-14">
 
-          {/* HEADER */}
           <div className="mb-10">
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
               Login
@@ -117,7 +117,6 @@ const LoginPage = () => {
           {/* FORM */}
           <form onSubmit={handleLogin} className="space-y-6">
 
-            {/* EMAIL */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Email
@@ -132,7 +131,6 @@ const LoginPage = () => {
               />
             </div>
 
-            {/* PASSWORD */}
             <div>
               <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                 Password
@@ -147,14 +145,12 @@ const LoginPage = () => {
               />
             </div>
 
-            {/* FORGOT PASSWORD */}
             <div className="flex justify-end">
               <button type="button" className="text-sm text-blue-500 hover:underline">
                 Forgot Password?
               </button>
             </div>
 
-            {/* LOGIN BUTTON */}
             <button
               type="submit"
               disabled={loading}
@@ -163,14 +159,12 @@ const LoginPage = () => {
               {loading ? "Logging in..." : "Login"}
             </button>
 
-            {/* DIVIDER */}
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
               <span className="text-sm text-gray-500">OR</span>
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
             </div>
 
-            {/* GOOGLE LOGIN */}
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -189,13 +183,13 @@ const LoginPage = () => {
             </button>
           </form>
 
-          {/* REGISTER */}
           <p className="text-center text-gray-500 dark:text-gray-400 mt-8">
             Don’t have an account?{" "}
             <Link href="/register" className="text-black dark:text-white font-semibold hover:underline">
               Register
             </Link>
           </p>
+
         </div>
       </div>
     </div>
