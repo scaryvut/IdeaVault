@@ -75,7 +75,7 @@ const MyInteraction = () => {
               <p className="text-sm text-gray-500">
                 Idea Title:
                 <span className="ml-2 text-black dark:text-white font-medium">
-                  {c.ideaTitle}
+                  {c.ideaId}
                 </span>
               </p>
 
