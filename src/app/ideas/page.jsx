@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState, useMemo } from "react";
 import { SkewLoader } from "react-spinners";
+import 'animate.css';
 
 const IdeaPage = () => {
   const [ideas, setIdeas] = useState([]);
@@ -90,7 +91,7 @@ const IdeaPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10 animate__animated animate__backInUp">
 
       {/* HEADER */}
       <div className="max-w-7xl mx-auto mb-8">

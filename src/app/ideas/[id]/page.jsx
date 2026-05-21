@@ -7,7 +7,7 @@ import { IoEyeSharp } from "react-icons/io5";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "react-toastify";
 import { SkewLoader } from "react-spinners";
-
+import 'animate.css';
 const DetailsPage = () => {
   const { id } = useParams();
   const router = useRouter();
@@ -222,7 +222,7 @@ const DetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10 animate__animated animate__backInUp">
 
       {/* HEADER */}
       <div className="max-w-4xl mx-auto flex justify-between items-center mb-6">

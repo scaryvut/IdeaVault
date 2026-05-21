@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import 'animate.css';
 
 const MyIdeas = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -135,7 +136,7 @@ const MyIdeas = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10">
 
-      <div className="max-w-6xl mx-auto mb-6">
+      <div className="max-w-6xl mx-auto mb-6 animate__animated animate__backInUp">
         <h1 className="text-2xl font-bold dark:text-white">
           My Ideas
         </h1>

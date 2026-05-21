@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { SkewLoader } from "react-spinners";
+import 'animate.css';
 
 const MyInteraction = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -63,7 +64,7 @@ const MyInteraction = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 px-4 py-10">
-      <div className="max-w-4xl mx-auto mb-6">
+      <div className="max-w-4xl mx-auto mb-6 animate__animated animate__backInUp">
         <h1 className="text-2xl font-bold dark:text-white">
           My Interactions
         </h1>

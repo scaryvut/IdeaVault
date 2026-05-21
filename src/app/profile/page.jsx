@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import 'animate.css';
 
 const ManageProfile = () => {
   const { data: session } = authClient.useSession();
@@ -72,7 +73,7 @@ const ManageProfile = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white dark:bg-gray-900 shadow-lg rounded-xl">
+    <div className="max-w-2xl mx-auto mt-10 p-6 bg-white dark:bg-gray-900 shadow-lg rounded-xl animate__animated animate__backInUp">
       <h1 className="text-2xl font-bold mb-6 text-black dark:text-white">
         Manage Profile
       </h1>
