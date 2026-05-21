@@ -4,24 +4,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const router = useRouter();
 
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   // ================= EMAIL LOGIN =================
-
   const handleLogin = async (e) => {
     e.preventDefault();
-
-    setError("");
     setLoading(true);
 
     const form = e.target;
-
     const email = form.email.value;
     const password = form.password.value;
 
@@ -32,39 +28,42 @@ const LoginPage = () => {
       });
 
       if (error) {
-        setError(error.message || "Invalid email or password");
+        toast.error(error.message || "Invalid email or password");
         setLoading(false);
         return;
       }
 
-      console.log(data);
-
+      toast.success("Login successful");
       form.reset();
 
-      router.push("/");
+      // smart redirect
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirect") || "/";
+
+      router.push(redirectTo);
     } catch (err) {
       console.log(err);
-
-      setError("Something went wrong");
+      toast.error("Something went wrong");
     }
 
     setLoading(false);
   };
 
   // ================= GOOGLE LOGIN =================
-
   const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
 
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get("redirect") || "/";
+
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/",
+        callbackURL: redirectTo,
       });
     } catch (err) {
       console.log(err);
-
-      setError("Google login failed");
+      toast.error("Google login failed");
     }
 
     setGoogleLoading(false);
@@ -86,29 +85,18 @@ const LoginPage = () => {
 
           <p className="text-lg text-gray-300 leading-relaxed">
             Log in to interact with creators, discover new innovations,
-            and manage your startup idea collections inside IdeaVault.
+            and manage your startup idea collections.
           </p>
 
-          {/* STATS */}
           <div className="flex gap-10 mt-12">
             <div>
-              <h2 className="text-3xl font-bold">
-                5K+
-              </h2>
-
-              <p className="text-gray-400 mt-2">
-                Ideas Shared
-              </p>
+              <h2 className="text-3xl font-bold">5K+</h2>
+              <p className="text-gray-400 mt-2">Ideas Shared</p>
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold">
-                1K+
-              </h2>
-
-              <p className="text-gray-400 mt-2">
-                Active Creators
-              </p>
+              <h2 className="text-3xl font-bold">1K+</h2>
+              <p className="text-gray-400 mt-2">Active Creators</p>
             </div>
           </div>
         </div>
@@ -121,17 +109,13 @@ const LoginPage = () => {
             <h2 className="text-4xl font-bold text-gray-900 dark:text-white">
               Login
             </h2>
-
             <p className="text-gray-500 dark:text-gray-400 mt-3">
-              Access your IdeaVault account
+              Access your account
             </p>
           </div>
 
           {/* FORM */}
-          <form
-            onSubmit={handleLogin}
-            className="space-y-6"
-          >
+          <form onSubmit={handleLogin} className="space-y-6">
 
             {/* EMAIL */}
             <div>
@@ -165,20 +149,10 @@ const LoginPage = () => {
 
             {/* FORGOT PASSWORD */}
             <div className="flex justify-end">
-              <button
-                type="button"
-                className="text-sm text-blue-500 hover:underline"
-              >
+              <button type="button" className="text-sm text-blue-500 hover:underline">
                 Forgot Password?
               </button>
             </div>
-
-            {/* ERROR */}
-            {error && (
-              <p className="text-red-500 text-sm">
-                {error}
-              </p>
-            )}
 
             {/* LOGIN BUTTON */}
             <button
@@ -192,11 +166,7 @@ const LoginPage = () => {
             {/* DIVIDER */}
             <div className="flex items-center gap-4">
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
-
-              <span className="text-sm text-gray-500">
-                OR
-              </span>
-
+              <span className="text-sm text-gray-500">OR</span>
               <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
             </div>
 
@@ -214,9 +184,7 @@ const LoginPage = () => {
               />
 
               <span className="font-medium text-gray-700 dark:text-gray-200">
-                {googleLoading
-                  ? "Connecting..."
-                  : "Continue with Google"}
+                {googleLoading ? "Connecting..." : "Continue with Google"}
               </span>
             </button>
           </form>
@@ -224,11 +192,7 @@ const LoginPage = () => {
           {/* REGISTER */}
           <p className="text-center text-gray-500 dark:text-gray-400 mt-8">
             Don’t have an account?{" "}
-
-            <Link
-              href="/register"
-              className="text-black dark:text-white font-semibold hover:underline"
-            >
+            <Link href="/register" className="text-black dark:text-white font-semibold hover:underline">
               Register
             </Link>
           </p>
