@@ -30,26 +30,34 @@ const DetailsPage = () => {
       : null;
 
   // ================= FETCH IDEA =================
-  useEffect(() => {
-    const fetchIdea = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/ideas/${id}`);
-        const data = await res.json();
+ useEffect(() => {
+  const fetchIdea = async () => {
+    const start = Date.now(); // ⏱ start timer
 
-        if (!res.ok) throw new Error(data?.message || "Failed");
+    try {
+      const res = await fetch(`http://localhost:5000/ideas/${id}`);
+      const data = await res.json();
 
-        setIdea(data);
-        setLikes(data?.likes || 0);
-        setViews(data?.views || 0);
-      } catch {
-        toast.error("Failed to load idea");
-      } finally {
+      if (!res.ok) throw new Error(data?.message || "Failed");
+
+      setIdea(data);
+      setLikes(data?.likes || 0);
+      setViews(data?.views || 0);
+    } catch {
+      toast.error("Failed to load idea");
+    } finally {
+      // ⏱ enforce minimum 2s loading
+      const elapsed = Date.now() - start;
+      const remaining = 2000 - elapsed;
+
+      setTimeout(() => {
         setLoading(false);
-      }
-    };
+      }, remaining > 0 ? remaining : 0);
+    }
+  };
 
-    if (id) fetchIdea();
-  }, [id]);
+  if (id) fetchIdea();
+}, [id]);
 
   // ================= VIEW COUNT =================
   useEffect(() => {

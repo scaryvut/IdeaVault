@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@heroui/react";
+import { toast } from "react-toastify";
 
 const Navbar = () => {
   const router = useRouter();
@@ -43,6 +44,19 @@ const Navbar = () => {
 
     router.push("/");
   };
+  const prevUserRef = React.useRef(null);
+
+useEffect(() => {
+  const prevUser = prevUserRef.current;
+  const currentUser = user;
+
+  // detect logout (was logged in → now logged out)
+  if (prevUser && !currentUser) {
+    toast.success("Logged out successfully");
+  }
+
+  prevUserRef.current = currentUser;
+}, [user]);
 
   // ================= NAV LINKS =================
 

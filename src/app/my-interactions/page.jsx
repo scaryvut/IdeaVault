@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { SkewLoader } from "react-spinners";
 
 const MyInteraction = () => {
   const { data: session, isPending } = authClient.useSession();
@@ -12,37 +13,46 @@ const MyInteraction = () => {
 
   useEffect(() => {
     const fetchMyComments = async () => {
-      if (!user?.id) return;
+      if (!user?.email) return;
+
+      setLoading(true);
+
+      const start = Date.now(); // ⏱ start timer
 
       try {
-        setLoading(true);
-
         const res = await fetch(
-  `http://localhost:5000/comments/user/${user.email}`
-);
+          `http://localhost:5000/comments/user/${user.email}`
+        );
 
         const data = await res.json();
-
         setComments(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
         setComments([]);
       } finally {
-        setLoading(false);
+        // ⏱ ensure minimum 2s loading
+        const elapsed = Date.now() - start;
+        const remaining = 2000 - elapsed;
+
+        setTimeout(() => {
+          setLoading(false);
+        }, remaining > 0 ? remaining : 0);
       }
     };
 
     fetchMyComments();
-  }, [user?.id]);
+  }, [user?.email]);
 
+  // ================= LOADING =================
   if (isPending || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <SkewLoader color="#810B38" />
       </div>
     );
   }
 
+  // ================= AUTH CHECK =================
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center text-gray-600">
@@ -73,7 +83,7 @@ const MyInteraction = () => {
               className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow"
             >
               <p className="text-sm text-gray-500">
-                Idea Title:
+                Idea ID:
                 <span className="ml-2 text-black dark:text-white font-medium">
                   {c.ideaId}
                 </span>
