@@ -1,8 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const AddIdeaPage = () => {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -13,16 +17,22 @@ const AddIdeaPage = () => {
     setLoading(true);
 
     const formData = new FormData(e.currentTarget);
-
     const idea = Object.fromEntries(formData.entries());
 
+    // 🔥 ONLY FIX (critical)
+    const payload = {
+      ...idea,
+      userId: user?.id,        // REQUIRED
+      userEmail: user?.email,  // optional but useful
+    };
+
     try {
-      const res = await fetch("http://localhost:5000/idea", {
+      const res = await fetch("http://localhost:5000/ideas", {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify(idea),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -41,7 +51,7 @@ const AddIdeaPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-3xl bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden">
-        
+
         {/* Header */}
         <div className="bg-black text-white px-6 py-6">
           <h1 className="text-2xl font-bold">Submit Idea</h1>
@@ -51,15 +61,15 @@ const AddIdeaPage = () => {
           </p>
         </div>
 
-        {/* Form */}
+        {/* Form (UNCHANGED) */}
         <form
           onSubmit={handleSubmit}
           className="p-7 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm"
         >
-          
+
           {/* LEFT */}
           <div className="space-y-4">
-            
+
             <input
               name="title"
               placeholder="Idea Title"
@@ -109,7 +119,7 @@ const AddIdeaPage = () => {
 
           {/* RIGHT */}
           <div className="space-y-4 flex flex-col">
-            
+
             <input
               name="budget"
               placeholder="Estimated Budget"
@@ -137,9 +147,7 @@ const AddIdeaPage = () => {
             />
 
             {success && (
-              <p className="text-green-500 text-xs">
-                {success}
-              </p>
+              <p className="text-green-500 text-xs">{success}</p>
             )}
 
             <button
@@ -149,6 +157,7 @@ const AddIdeaPage = () => {
             >
               {loading ? "Submitting..." : "Submit Idea"}
             </button>
+
           </div>
         </form>
       </div>
