@@ -22,7 +22,7 @@ const MyInteraction = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:5000/comments/user/${user.email}`
+          `https://idea-vault-server-eight.vercel.app/comments/user/${user.email}`
         );
 
         const data = await res.json();

@@ -25,7 +25,7 @@ const MyIdeas = () => {
   const getToken = async () => {
     if (!user) return null;
 
-    const res = await fetch("http://localhost:5000/jwt", {
+    const res = await fetch("https://idea-vault-server-eight.vercel.app/jwt", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -50,7 +50,7 @@ const MyIdeas = () => {
 
       try {
         const res = await fetch(
-          `http://localhost:5000/ideas?userEmail=${user.email}`
+          `https://idea-vault-server-eight.vercel.app/ideas?userEmail=${user.email}`
         );
 
         const data = await res.json();
@@ -74,7 +74,7 @@ const MyIdeas = () => {
       const token = await getToken();
 
       const res = await fetch(
-        `http://localhost:5000/ideas/${deleteId}`,
+        `https://idea-vault-server-eight.vercel.app/ideas/${deleteId}`,
         {
           method: "DELETE",
           headers: {
@@ -121,7 +121,7 @@ const MyIdeas = () => {
       const token = await getToken();
 
       const res = await fetch(
-        `http://localhost:5000/ideas/${editId}`,
+        `https://idea-vault-server-eight.vercel.app/ideas/${editId}`,
         {
           method: "PATCH",
           headers: {

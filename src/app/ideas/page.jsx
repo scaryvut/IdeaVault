@@ -18,7 +18,7 @@ const IdeaPage = () => {
       try {
         const start = Date.now();
 
-        const res = await fetch("http://localhost:5000/ideas");
+        const res = await fetch("https://idea-vault-server-eight.vercel.app/ideas");
         const data = await res.json();
 
         setIdeas(data);

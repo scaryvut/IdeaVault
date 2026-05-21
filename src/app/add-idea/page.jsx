@@ -27,7 +27,7 @@ const AddIdeaPage = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/ideas", {
+      const res = await fetch("https://idea-vault-server-eight.vercel.app/ideas", {
         method: "POST",
         headers: {
           "content-type": "application/json",

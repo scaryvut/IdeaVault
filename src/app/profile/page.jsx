@@ -32,7 +32,7 @@ const ManageProfile = () => {
         throw new Error("No token found. Please login again.");
       }
 
-      const res = await fetch("http://localhost:5000/user/profile", {
+      const res = await fetch("https://idea-vault-server-eight.vercel.app/user/profile", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

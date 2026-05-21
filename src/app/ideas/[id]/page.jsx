@@ -35,7 +35,7 @@ const DetailsPage = () => {
     const start = Date.now(); // ⏱ start timer
 
     try {
-      const res = await fetch(`http://localhost:5000/ideas/${id}`);
+      const res = await fetch(`https://idea-vault-server-eight.vercel.app/ideas/${id}`);
       const data = await res.json();
 
       if (!res.ok) throw new Error(data?.message || "Failed");
@@ -63,7 +63,7 @@ const DetailsPage = () => {
   useEffect(() => {
     const addView = async () => {
       try {
-        await fetch(`http://localhost:5000/ideas/${id}/view`, {
+        await fetch(`https://idea-vault-server-eight.vercel.app/ideas/${id}/view`, {
           method: "PATCH",
         });
         setViews((prev) => prev + 1);
@@ -76,7 +76,7 @@ const DetailsPage = () => {
   // ================= LOAD COMMENTS =================
   const loadComments = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/comments/${id}`);
+      const res = await fetch(`https://idea-vault-server-eight.vercel.app/comments/${id}`);
       const data = await res.json();
 
       if (!res.ok) throw new Error();
@@ -94,7 +94,7 @@ const DetailsPage = () => {
   // ================= LIKE =================
   const handleLike = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/ideas/${id}/like`, {
+      const res = await fetch(`https://idea-vault-server-eight.vercel.app/ideas/${id}/like`, {
         method: "PATCH",
       });
 
@@ -112,7 +112,7 @@ const DetailsPage = () => {
     if (!text.trim()) return toast.error("Comment cannot be empty");
 
     try {
-      const res = await fetch("http://localhost:5000/comments", {
+      const res = await fetch("https://idea-vault-server-eight.vercel.app/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -143,7 +143,7 @@ const DetailsPage = () => {
   const handleDelete = async (cid) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/comments/${cid}`,
+        `https://idea-vault-server-eight.vercel.app/comments/${cid}`,
         {
           method: "DELETE",
           headers: {
@@ -177,7 +177,7 @@ const DetailsPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/comments/${editId}`,
+        `https://idea-vault-server-eight.vercel.app/comments/${editId}`,
         {
           method: "PATCH",
           headers: {
