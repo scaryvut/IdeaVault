@@ -1,3 +1,6 @@
+# Live Link
+https://idea-vault-kappa-eight.vercel.app/
+
 # IdeaVault 💡
 
 IdeaVault is a full-stack web application where users can share, discover, and interact with startup ideas. It helps creators validate ideas and engage with a community.
