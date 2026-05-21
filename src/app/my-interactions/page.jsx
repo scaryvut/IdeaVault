@@ -18,8 +18,8 @@ const MyInteraction = () => {
         setLoading(true);
 
         const res = await fetch(
-          `http://localhost:5000/comments/user/${user.id}`
-        );
+  `http://localhost:5000/comments/user/${user.email}`
+);
 
         const data = await res.json();
 

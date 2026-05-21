@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { FaRegGrinHearts } from "react-icons/fa";
 import { IoEyeSharp } from "react-icons/io5";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "react-toastify";
 
 const DetailsPage = () => {
   const { id } = useParams();
@@ -22,15 +23,25 @@ const DetailsPage = () => {
   const [views, setViews] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("token")
+      : null;
+
   // ================= FETCH IDEA =================
   useEffect(() => {
     const fetchIdea = async () => {
-      const res = await fetch(`http://localhost:5000/ideas/${id}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`http://localhost:5000/ideas/${id}`);
+        const data = await res.json();
 
-      setIdea(data);
-      setLikes(data?.likes || 0);
-      setViews(data?.views || 0);
+        setIdea(data);
+        setLikes(data?.likes || 0);
+        setViews(data?.views || 0);
+      } catch (error) {
+        toast.error("Failed to load idea");
+      }
+
       setLoading(false);
     };
 
@@ -40,11 +51,13 @@ const DetailsPage = () => {
   // ================= VIEW COUNT =================
   useEffect(() => {
     const addView = async () => {
-      await fetch(`http://localhost:5000/ideas/${id}/view`, {
-        method: "PATCH",
-      });
+      try {
+        await fetch(`http://localhost:5000/ideas/${id}/view`, {
+          method: "PATCH",
+        });
 
-      setViews((prev) => prev + 1);
+        setViews((prev) => prev + 1);
+      } catch (error) {}
     };
 
     if (id) addView();
@@ -52,11 +65,16 @@ const DetailsPage = () => {
 
   // ================= LOAD COMMENTS =================
   const loadComments = async () => {
-    const res = await fetch(
-      `http://localhost:5000/comments/${id}`
-    );
-    const data = await res.json();
-    setComments(data);
+    try {
+      const res = await fetch(
+        `http://localhost:5000/comments/${id}`
+      );
+
+      const data = await res.json();
+      setComments(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   useEffect(() => {
@@ -65,59 +83,113 @@ const DetailsPage = () => {
 
   // ================= LIKE =================
   const handleLike = async () => {
-    await fetch(`http://localhost:5000/ideas/${id}/like`, {
-      method: "PATCH",
-    });
+    try {
+      await fetch(`http://localhost:5000/ideas/${id}/like`, {
+        method: "PATCH",
+      });
 
-    setLikes((prev) => prev + 1);
+      setLikes((prev) => prev + 1);
+    } catch (error) {}
   };
 
-  // ================= ADD COMMENT =================
+  // ================= ADD COMMENT (FIXED) =================
   const handleAddComment = async () => {
-    if (!user) return alert("Please login first");
+    if (!user) {
+      toast.error("Please login first");
+      return;
+    }
+
     if (!text.trim()) return;
 
-    await fetch("http://localhost:5000/comments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ideaId: id,
-        text,
-        userName: user.name,
-      }),
-    });
+    try {
+      const res = await fetch("http://localhost:5000/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+  ideaId: id,
+  text,
+  userEmail: user?.email,   // ✅ ADD THIS
+}),
+        
+      });
 
-    setText("");
-    loadComments();
+      if (res.status === 401) {
+        toast.error("Unauthorized");
+        return;
+      }
+
+      setText("");
+      await loadComments();
+      toast.success("Comment added");
+    } catch (error) {
+      toast.error("Failed to add comment");
+    }
   };
 
-  // ================= DELETE COMMENT =================
+  // ================= DELETE =================
   const handleDelete = async (cid) => {
-    await fetch(`http://localhost:5000/comments/${cid}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:5000/comments/${cid}`,
+        {
+          method: "DELETE",
+          headers: {
+            authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    loadComments();
+      if (res.status === 403) {
+        toast.error("Forbidden");
+        return;
+      }
+
+      await loadComments();
+      toast.success("Comment deleted");
+    } catch (error) {
+      toast.error("Delete failed");
+    }
   };
 
-  // ================= EDIT COMMENT =================
+  // ================= EDIT =================
   const handleEdit = (comment) => {
     setText(comment.text);
     setEditId(comment._id);
   };
 
+  // ================= UPDATE =================
   const handleUpdate = async () => {
     if (!text.trim()) return;
 
-    await fetch(`http://localhost:5000/comments/${editId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
-    });
+    try {
+      const res = await fetch(
+        `http://localhost:5000/comments/${editId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ text }),
+        }
+      );
 
-    setText("");
-    setEditId(null);
-    loadComments();
+      if (res.status === 403) {
+        toast.error("Forbidden");
+        return;
+      }
+
+      setEditId(null);
+      setText("");
+      await loadComments();
+
+      toast.success("Comment updated");
+    } catch (error) {
+      toast.error("Update failed");
+    }
   };
 
   // ================= LOADING =================
@@ -157,12 +229,11 @@ const DetailsPage = () => {
         <div />
       </div>
 
-      {/* IDEA CARD */}
+      {/* IDEA */}
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
 
         <img
           src={idea.image}
-          alt={idea.title}
           className="w-full h-72 object-cover rounded-xl"
         />
 
@@ -172,10 +243,7 @@ const DetailsPage = () => {
 
         <div className="flex gap-6 mt-3 text-sm dark:text-white">
 
-          <button
-            onClick={handleLike}
-            className="flex items-center gap-1"
-          >
+          <button onClick={handleLike} className="flex items-center gap-1">
             <FaRegGrinHearts />
             {likes}
           </button>
@@ -196,7 +264,7 @@ const DetailsPage = () => {
         </p>
       </div>
 
-      {/* COMMENTS SECTION */}
+      {/* COMMENTS */}
       <div className="max-w-4xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow">
 
         <h2 className="text-xl font-bold mb-4 dark:text-white">
@@ -210,9 +278,7 @@ const DetailsPage = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder={
-              user
-                ? "Write comment..."
-                : "Login to comment"
+              user ? "Write comment..." : "Login to comment"
             }
             disabled={!user}
             className="w-full p-3 border rounded-lg"
@@ -236,7 +302,7 @@ const DetailsPage = () => {
 
         </div>
 
-        {/* COMMENTS LIST */}
+        {/* LIST */}
         <div className="mt-6 space-y-4">
 
           {comments.map((c) => (
@@ -245,11 +311,10 @@ const DetailsPage = () => {
               className="border p-4 rounded-xl bg-gray-50 dark:bg-gray-900"
             >
 
-              {/* USERNAME + TIME */}
               <div className="flex justify-between">
 
                 <p className="font-semibold text-gray-800 dark:text-white">
-                  {c.userName}
+                  {c.userEmail?.split("@")[0] || "User"}
                 </p>
 
                 <span className="text-xs text-gray-500">
@@ -260,13 +325,11 @@ const DetailsPage = () => {
 
               </div>
 
-              {/* COMMENT TEXT */}
               <p className="mt-2 text-gray-700 dark:text-gray-200">
                 {c.text}
               </p>
 
-              {/* OWNER ACTIONS */}
-              {user?.name === c.userName && (
+              {user?.email === c.userEmail && (
                 <div className="flex gap-3 mt-3">
 
                   <button
